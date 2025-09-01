@@ -340,6 +340,17 @@
         .analyze-btn.show {
             display: flex;
         }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
         
         .analysis-container {
             position: sticky;
@@ -905,6 +916,15 @@
                     <div class="message-content">${formatAIResponse(data.response)}</div>
                 `;
                 messagesContainer.appendChild(aiMessage);
+
+                // Show/hide SOAP generation button based on response
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                if (data.show_soap_button) {
+                    analyzeBtn.style.display = 'flex';
+                    analyzeBtn.style.animation = 'fadeIn 0.3s ease-in';
+                } else if (data.user_message_count < 2) {
+                    analyzeBtn.style.display = 'none';
+                }
 
             } catch (error) {
                 // Remove loading message
