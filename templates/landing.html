@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Scribe - Professional SOAP Note Generation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            overflow-x: hidden;
+            background: #ffffff;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 1rem 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #1e293b;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 2px;
+            background: white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 18px;
+            background: white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #3b82f6;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding-top: 80px;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><pattern id="medical" patternUnits="userSpaceOnUse" width="120" height="120"><g fill="rgba(255,255,255,0.02)"><circle cx="30" cy="30" r="2"/><path d="M58 26h8v8h8v8h-8v8h-8v-8h-8v-8h8z"/><circle cx="90" cy="90" r="1.5"/><path d="M15 85h4v4h4v4h-4v4h-4v-4h-4v-4h4z"/></g></pattern></defs><rect width="100%" height="100%" fill="url(%23medical)"/></svg>') center/cover;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-text {
+            color: white;
+        }
+
+        .hero-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 25px 50px rgba(59, 130, 246, 0.4);
+        }
+
+        .hero-image {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .medical-illustration {
+            width: 100%;
+            max-width: 550px;
+            height: 450px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .medical-illustration::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-radius: 50%;
+            top: 30%;
+            left: 30%;
+            transform: translate(-50%, -50%);
+            animation: pulse 6s ease-in-out infinite;
+        }
+
+        .medical-illustration::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+            border-radius: 50%;
+            top: 70%;
+            right: 25%;
+            animation: pulse 4s ease-in-out infinite;
+            animation-delay: -2s;
+        }
+
+        .stethoscope {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .stethoscope svg {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.2));
+        }
+
+        .medical-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .medical-icon {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            animation: float 8s ease-in-out infinite;
+            backdrop-filter: blur(10px);
+        }
+
+        .medical-icon:nth-child(1) {
+            top: 15%;
+            left: 15%;
+            animation-delay: -1s;
+        }
+
+        .medical-icon:nth-child(2) {
+            top: 25%;
+            right: 20%;
+            animation-delay: -3s;
+        }
+
+        .medical-icon:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -5s;
+        }
+
+        .medical-icon:nth-child(4) {
+            bottom: 30%;
+            right: 15%;
+            animation-delay: -7s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.1;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) {
+            width: 60px;
+            height: 60px;
+            top: 20%;
+            left: 20%;
+            animation-delay: -1s;
+        }
+
+        .floating-element:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            top: 60%;
+            right: 20%;
+            animation-delay: -2s;
+        }
+
+        .floating-element:nth-child(3) {
+            width: 40px;
+            height: 40px;
+            bottom: 30%;
+            left: 30%;
+            animation-delay: -3s;
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.3);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .feature-description {
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        /* Problem Section */
+        .problem {
+            padding: 6rem 0;
+            background: white;
+        }
+
+        .problem-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .problem-text h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .problem-list {
+            list-style: none;
+            margin: 2rem 0;
+        }
+
+        .problem-list li {
+            padding: 0.75rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .problem-list li::before {
+            content: '❌';
+            font-size: 1.125rem;
+        }
+
+        .solution-list li::before {
+            content: '✅';
+            font-size: 1.125rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-content h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .cta-content p {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: #1e293b;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 2.75rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.125rem;
+            }
+
+            .problem-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+
+            .cta-button {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="/" class="logo">
+                <div class="logo-icon"></div>
+                <span>MedScribe AI</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#problem" class="nav-link">Solution</a>
+                <a href="/app" class="nav-cta">Try Demo</a>
+            </div>
+            <button class="mobile-menu">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">🩺 AI-Powered Clinical Documentation</div>
+                    <h1>Transform Patient Interviews into Professional SOAP Notes</h1>
+                    <p class="hero-subtitle">
+                        Streamline clinical documentation with AI-powered SOAP note generation. 
+                        Convert patient conversations into standardized medical records in seconds.
+                    </p>
+                    <a href="/app" class="cta-button">
+                        <span>Get Started Now</span>
+                        <span>→</span>
+                    </a>
+                </div>
+                <div class="hero-image">
+                    <div class="medical-illustration">
+                        <div class="medical-icons">
+                            <div class="medical-icon">💊</div>
+                            <div class="medical-icon">🫀</div>
+                            <div class="medical-icon">🧬</div>
+                            <div class="medical-icon">⚕️</div>
+                        </div>
+                        <div class="stethoscope">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M25 20C25 15 29 11 34 11C39 11 43 15 43 20V35C43 45 38 54 30 58L30 70" stroke="white" stroke-width="3" fill="none" opacity="0.9"/>
+                                <path d="M57 20C57 15 61 11 66 11C71 11 75 15 75 20V35C75 45 70 54 62 58L62 70" stroke="white" stroke-width="3" fill="none" opacity="0.9"/>
+                                <circle cx="34" cy="20" r="8" fill="none" stroke="white" stroke-width="2" opacity="0.8"/>
+                                <circle cx="66" cy="20" r="8" fill="none" stroke="white" stroke-width="2" opacity="0.8"/>
+                                <path d="M30 70L62 70" stroke="white" stroke-width="3" opacity="0.9"/>
+                                <path d="M46 70L46 75" stroke="white" stroke-width="3" opacity="0.9"/>
+                                <circle cx="46" cy="80" r="8" fill="white" fill-opacity="0.9"/>
+                                <circle cx="46" cy="80" r="5" fill="rgba(59, 130, 246, 0.8)"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">80%</div>
+                    <div class="stat-label">Time Reduction</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">30s</div>
+                    <div class="stat-label">Generation Speed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Accuracy Standard</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Availability</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problem" id="problem">
+        <div class="container">
+            <div class="problem-content">
+                <div class="problem-text">
+                    <h2>The Documentation Challenge Healthcare Faces</h2>
+                    <ul class="problem-list">
+                        <li>Doctors spend 2+ hours daily on documentation</li>
+                        <li>Manual SOAP notes are time-consuming and error-prone</li>
+                        <li>Inconsistent documentation affects patient care</li>
+                        <li>Administrative burden reduces time with patients</li>
+                        <li>Missing or incomplete clinical data impacts decisions</li>
+                    </ul>
+                </div>
+                <div class="problem-text">
+                    <h2>Our AI-Powered Solution</h2>
+                    <ul class="problem-list solution-list">
+                        <li>Automated SOAP note generation in under 30 seconds</li>
+                        <li>Standardized documentation format every time</li>
+                        <li>Never invents data - only documents what's stated</li>
+                        <li>Clearly marks missing information as "Not documented"</li>
+                        <li>Reduces documentation time by 80%</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Designed for Healthcare Professionals</h2>
+                <p class="section-subtitle">
+                    Our AI medical scribe is built specifically for clinicians who value accuracy, 
+                    efficiency, and professional documentation standards.
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">👨‍⚕️</div>
+                    <h3 class="feature-title">For Primary Care Physicians</h3>
+                    <p class="feature-description">
+                        Streamline your daily documentation workflow. Perfect for family medicine, 
+                        internal medicine, and general practice settings where efficient note-taking is crucial.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏥</div>
+                    <h3 class="feature-title">For Medical Students & Residents</h3>
+                    <p class="feature-description">
+                        Learn proper SOAP note structure while focusing on patient care. 
+                        Our AI demonstrates professional documentation standards every time.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3 class="feature-title">For Clinical Practices</h3>
+                    <p class="feature-description">
+                        Standardize documentation across your entire practice. Ensure consistent, 
+                        high-quality medical records that support better patient outcomes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Revolutionize Your Clinical Documentation?</h2>
+                <p>
+                    If this AI medical scribe works as designed, our next step is to integrate with 
+                    major EHR systems, add voice-to-text capabilities, and deploy across healthcare 
+                    networks to transform how medical documentation is created.
+                </p>
+                <a href="/app" class="cta-button">
+                    <span>Try the AI Medical Scribe</span>
+                    <span>🚀</span>
+                </a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

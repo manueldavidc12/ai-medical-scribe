@@ -1,0 +1,13 @@
+# Simple Medical Chatbot Requirements
+# For II-Medical-8B on Amazon SageMaker
+
+# Core Flask framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+
+# AWS and SageMaker
+boto3==1.34.144
+sagemaker==2.219.0
+
+# Basic utilities (already included with Python 3.8+)
+# uuid, json, datetime are built-in modules

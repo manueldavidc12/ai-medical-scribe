@@ -1,0 +1,9 @@
+# Medical Chatbot Production Requirements
+Flask==2.3.3
+Flask-CORS==4.0.0
+gunicorn==21.2.0
+requests==2.31.0
+openai==0.28.1
+
+# Optional: for environment management
+python-dotenv==1.0.0
